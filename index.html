@@ -1,0 +1,92 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Time Charge Control – TM Group 2026</title>
+<style>
+:root{--bg:#f4f6f9;--cd:#fff;--tx:#1b2430;--mu:#667386;--bd:#dce1e8;--pr:#1f4e8c;--ok:#1c7c4d;--wa:#b7791f;--er:#c0392b;--or:#e07b00;--hd:#eceff4;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#12161c;--cd:#1b222b;--tx:#e6eaf0;--mu:#8b97a7;--bd:#2c3642;--pr:#6aa5ee;--ok:#4cc38a;--wa:#e0a84a;--er:#ef7b6e;--or:#f0a050;--hd:#232c37}}
+:root[data-theme=dark]{--bg:#12161c;--cd:#1b222b;--tx:#e6eaf0;--mu:#8b97a7;--bd:#2c3642;--pr:#6aa5ee;--ok:#4cc38a;--wa:#e0a84a;--er:#ef7b6e;--or:#f0a050;--hd:#232c37}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+.w{max-width:1100px;margin:0 auto;padding:14px}h1{font-size:18px;margin:0}.mu{color:var(--mu);font-size:12px}
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ctl{display:flex;flex-wrap:wrap;gap:8px}select,input,button{font:inherit;color:var(--tx);background:var(--cd);border:1px solid var(--bd);border-radius:6px;padding:6px 8px}
+button{cursor:pointer}button.p{background:var(--pr);color:#fff;border-color:var(--pr)}button.g{color:var(--ok)}button.r{color:var(--er)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--bd);margin-bottom:12px}.tabs button{border:0;border-bottom:3px solid transparent;border-radius:0;background:none}.tabs .on{border-color:var(--pr);color:var(--pr);font-weight:600}
+.cd{background:var(--cd);border:1px solid var(--bd);border-radius:8px;padding:10px;margin-bottom:10px}.sc{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:720px}th,td{padding:6px 8px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}th{background:var(--hd);font-size:12px}td.n,th.n{text-align:right}
+input.in{width:70px;text-align:right}.bar{height:7px;width:90px;background:var(--hd);border-radius:4px;display:inline-block;vertical-align:middle;margin-right:6px}.bar i{display:block;height:100%;border-radius:4px}
+.b{font-size:11px;padding:2px 7px;border-radius:10px;border:1px solid var(--bd)}.S{color:var(--wa)}.A{color:var(--ok)}.R,.er{color:var(--er)}.or{color:var(--or)}.P{color:var(--pr)}
+.note{background:var(--hd);border-radius:6px;padding:8px;font-size:12px;margin-bottom:10px}summary{cursor:pointer;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+</style></head><body><div class="w" id="lg" hidden><div class="cd" style="max-width:340px;margin:60px auto"><h1>⏱ Time Charge Control</h1><p class="mu">Masukkan password level Anda (Senior / SPV / Manager).</p><input id="pw" type="password" placeholder="Password" autocomplete="current-password" style="width:100%;box-sizing:border-box"><p><button class="p" id="go">Masuk</button> <span id="le" class="er"></span></p></div></div><div class="w" id="app" hidden>
+<div class="top"><div><h1>⏱ Time Charge Control · TM Group 2026</h1><div class="mu" id="sm">Hanya jam, tanpa nilai Rupiah</div></div>
+<div class="ctl"><select id="u"></select><select id="pd"></select><button id="lo">Logout</button></div></div>
+<div class="tabs" id="tb"></div><div id="v"></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script><script>
+const API="https://script.google.com/macros/s/AKfycbwA8eSOgdAp_mr0gBpgBQsC4r6Lh4n-mw9tjoZbsbE-ET790Oom4CM7YFq9OSt9rgCt/exec";
+let T=null;try{T=localStorage.tc_t}catch(e){}
+const g=x=>document.querySelector(x);
+async function api(b){try{const r=await(await fetch(API,{method:"POST",body:JSON.stringify({...b,t:T})})).json();if(!r.ok&&r.err=="Sesi berakhir"){try{localStorage.removeItem("tc_t")}catch(e){}location.reload()}return r}catch(e){return{ok:false,err:"Koneksi gagal"}}}
+function enter(r){g("#lg").hidden=true;g("#app").hidden=false;startApp(r.m,r.s,r.lv)}
+async function init(){if(T){const r=await api({a:"load"});if(r.ok)return enter(r);T=null}g("#lg").hidden=false}
+g("#go").onclick=async()=>{g("#go").disabled=true;g("#le").textContent="";const r=await api({a:"login",pw:g("#pw").value});g("#go").disabled=false;if(!r.ok)return g("#le").textContent=r.err;T=r.t;try{localStorage.tc_t=T}catch(e){}enter(r)};
+g("#pw").onkeydown=e=>{if(e.key=="Enter")g("#go").click()};
+g("#lo").onclick=async()=>{await api({a:"logout"});try{localStorage.removeItem("tc_t");localStorage.removeItem("tc_u")}catch(e){}location.reload()};
+init();
+function startApp(m,st,lv){const LVN={senior:1,spv:2,manager:3}[lv],D=[];m.forEach(x=>{if(!D.some(d=>d.c==x[0]))D.push({c:x[0],n:x[1]})});
+const RK={"Senior Manager":3,"Associate Manager":3,"SPV":2,"Senior 2":1,"Senior 1":1,"Semi Senior":1,"Associate 2":0,"Associate 1":0},RL=["Associate","Senior","Supervisor","Manager"],ADM=["Verdi","Achmad"];
+const R=m.map((x,i)=>({id:i,e:D.findIndex(d=>d.c==x[0]),c:x[0],name:x[2],pos:x[3],h:+x[4],rk:RK[x[3]]}));
+const P=[];{let d=new Date(2026,9,26);for(let i=0;i<16;i++){const a=new Date(d),b=d.getDate()==11?new Date(d.getFullYear(),d.getMonth(),25):new Date(d.getFullYear(),d.getMonth()+1,10);P.push([a,b]);d=new Date(b.getTime()+864e5)}}
+const fd=d=>d.toLocaleDateString("id-ID",{day:"numeric",month:"short"}),f=n=>n.toLocaleString("id-ID",{maximumFractionDigits:2}),$=s=>document.querySelector(s);
+const users=[...new Map(R.filter(r=>r.rk>=1).map(r=>[r.name,{...r,ad:ADM.includes(r.name)}])).values()].filter(u=>u.rk==LVN).sort((a,b)=>a.name.localeCompare(b.name));
+let S={},O={},L={},rej=null,p=P.findIndex(x=>new Date()>=x[0]&&new Date()<=new Date(x[1].getTime()+864e5));if(p<0)p=0;let U=users.find(u=>u.name==(()=>{try{return localStorage.tc_u}catch(e){}})())||users[0],tab="in";
+
+function apply(x){R.forEach(r=>{S[r.id]=x.S[r.id]||{};O[r.id]=x.O[r.id]||0});Object.keys(L).forEach(k=>delete L[k]);Object.assign(L,x.L)}
+const flat=()=>{const o={};R.forEach(r=>{Object.entries(S[r.id]).forEach(([q,v])=>o["S|"+r.id+"|"+q]=JSON.stringify(v));if(O[r.id])o["O|"+r.id]=JSON.stringify(O[r.id])});Object.keys(L).forEach(q=>{if(L[q])o["L|"+q]="true"});return o};
+apply(st);let last=flat(),busy=false;
+async function reload(){const r=await api({a:"load"});if(r.ok){apply(r.s);last=flat();draw0()}}
+async function sync(){if(busy)return;const cur=flat(),ops=[];for(const k in cur)if(last[k]!==cur[k])ops.push({k,v:JSON.parse(cur[k])});for(const k in last)if(!(k in cur))ops.push({k,v:null});
+if(!ops.length)return;busy=true;$("#sm").textContent="Menyimpan…";const r=await api({a:"op",ops,who:U.name});busy=false;
+if(!r.ok){alert("Gagal menyimpan: "+r.err);return reload()}
+last=cur;if(JSON.stringify(flat())!=JSON.stringify(cur))return sync();apply(r.s);last=flat();draw0();$("#sm").textContent="Tersimpan ✓ "+new Date().toLocaleTimeString("id-ID")}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&!busy&&!document.activeElement.matches("input"))reload()});
+const mem=e=>R.filter(r=>r.e==e),A=(r,x)=>Object.entries(S[r.id]).reduce((a,[q,v])=>a+(v.st=="A"&&q!=x?v.h:0),0);
+const ent=u=>R.filter(r=>mem(r.e).some(m=>m.name==u.name&&(u.rk>=2?r.name==u.name:r.rk<=1)));
+const apr=u=>u.rk<2?[]:R.filter(r=>r.rk<u.rk&&mem(r.e).some(m=>m.name==u.name));
+const ST={D:"Draft",S:"Menunggu approval",P:"Disetujui SPV – menunggu Manager",A:"Disetujui",R:"Ditolak"},pc=(r,x)=>r.h?x/r.h*100:0;
+const bar=c=>`<span class="bar"><i style="width:${Math.min(c,100)}%;background:var(--${c>100?"er":c>=75?"or":"ok"})"></i></span>${f(c)}%`;
+const fl=c=>c>100?" 🔴":c>=75?" 🟠":"";
+const bd=(s,t)=>`<span class="b ${s}">${t||ST[s]}</span>`,pn=u=>apr(u).reduce((a,r)=>a+Object.values(S[r.id]).filter(x=>ca(u,r,x)).length,0);
+const draw=()=>{draw0();sync()};function draw0(){$("#tb").innerHTML=[["in","Input Time Charge"],...(U.rk>=2?[["ap","Approval ("+pn(U)+")"]]:[]),["mo","Monitoring Budget"],...(U.ad?[["ad","Admin"]]:[])].map(t=>`<button data-t="${t[0]}" class="${tab==t[0]?"on":""}">${t[1]}</button>`).join("");
+$("#v").innerHTML=(tab=="in"?vin:tab=="ap"?vap:tab=="mo"?vmo:vad)()}
+const lk=()=>!L[p]?"":U.ad?'<div class="note er">🔒 Periode terkunci. Sebagai Admin, Anda dapat mengoreksi; perubahan langsung final.</div>':'<div class="note er">🔒 Periode terkunci. Hanya Verdi dan Achmad yang dapat mengubah.</div>';
+const B=(r,x)=>O[r.id]+Object.entries(S[r.id]).reduce((a,[q,v])=>a+(v.st=="A"&&+q<x?v.h:0),0),adl=()=>U.ad&&L[p];
+function vin(){const per=P[p];
+const tr=(adl()?R:ent(U)).map(r=>{const x=S[r.id][p],ed=adl()||(!L[p]&&(!x||x.st=="D"||x.st=="R")),b=B(r,p),tt=b+(x?x.h:0),c=pc(r,tt);
+return`<tr><td>${r.c}</td><td>${r.name}${r.name==U.name?" (saya)":""}</td><td>${r.pos}</td><td class="n">${f(r.h)}</td><td class="n">${f(b)}</td><td>${ed?`<input class="in" type="number" min="0" step="0.5" data-r="${r.id}" value="${x?x.h:""}" placeholder="0">`:x?f(x.h):"-"}</td><td class="n">${f(tt)}</td><td class="n">${f(r.h-tt)}</td><td>${bar(c)}${fl(c)}</td><td>${x&&x.adm?bd("A","Disetujui (koreksi admin)"):bd(x?x.st:"D",x?null:"Belum diisi")}${x&&x.st=="R"?`<div class="mu R">Alasan: ${x.note}</div>`:""}</td></tr>`}).join("");
+return`${lk()}<div class="note">Periode <b>${fd(per[0])} – ${fd(per[1])} ${per[1].getFullYear()}</b> · satuan 0,5 jam · Beginning = akumulasi jam disetujui sebelum periode ini · 🟠 75–100% · 🔴 di atas 100% dari budget. ${U.rk==1?"Anda mengisi jam sendiri dan associate bawahan.":U.rk==2?"Anda mengisi jam sendiri; approval di tab Approval.":"Jam Manager final saat submit."}</div>
+<div class="cd sc"><table><tr><th rowspan=2>PT</th><th rowspan=2>Nama</th><th rowspan=2>Posisi</th><th class="n" rowspan=2>Budget</th><th colspan=3 style="text-align:center">Actual Time Charges</th><th class="n" rowspan=2>Sisa</th><th rowspan=2>% Used</th><th rowspan=2>Status</th></tr><tr><th class="n">Beginning</th><th>Charges</th><th class="n">Ending</th></tr>${tr}</table></div>${L[p]?"":'<button class="p" data-a="sub">Submit periode ini</button>'} <span class="mu" id="msg"></span>`}
+const hs=e=>mem(e).some(m=>m.rk==2),n2=r=>r.rk<=1&&hs(r.e);
+const ca=(u,r,x)=>adl()?(x.st=="S"||x.st=="P"):u.rk==2?x.st=="S":(x.st=="P"||(x.st=="S"&&!n2(r)));
+function vap(){const per=P[p],rows=(adl()?R:apr(U)).filter(r=>{const x=S[r.id][p];return x&&(x.st=="S"||(x.st=="P"&&U.rk==3))});
+const tr=rows.map(r=>{const x=S[r.id][p],t=B(r,p)+x.h,c=pc(r,t);return`<tr><td>${r.c}</td><td>${r.name}</td><td>${r.pos}</td><td class="n">${f(r.h)}</td><td class="n">${f(x.h)}</td><td class="n">${f(t)}</td><td>${bar(c)}${fl(c)}</td><td>${bd(x.st)}</td><td>${L[p]&&!U.ad?"🔒":!ca(U,r,x)?'<span class="mu">⏳ Menunggu approval SPV</span>':rej==r.id?`<input id="rs" placeholder="Alasan reject (wajib)" style="width:210px"> <button class="r" data-a="rc" data-r="${r.id}">Kirim</button> <button data-a="rx">Batal</button> <span id="rm" class="R"></span>`:`<button class="g" data-a="ok" data-r="${r.id}">Approve</button> <button class="r" data-a="no" data-r="${r.id}">Reject</button>`}</td></tr>`}).join("");
+return`${lk()}<div class="note">Antrian approval periode <b>${fd(per[0])} – ${fd(per[1])}</b>: ${rows.length} baris · Total = Beginning + Submitted Charges · % Used = Total ÷ Budget.<br>${U.rk==2?"Setelah Anda approve, pengajuan Senior dan Associate diteruskan ke Manager.":"Pengajuan Senior dan Associate pada PT yang memiliki SPV hanya dapat Anda approve setelah SPV menyetujuinya. Supervisor dan PT tanpa SPV dapat langsung Anda approve."}</div><div class="cd sc"><table><tr><th rowspan=2>PT</th><th rowspan=2>Nama</th><th rowspan=2>Posisi</th><th class="n" rowspan=2>Budget</th><th colspan=2 style="text-align:center">Actual Time Charges</th><th rowspan=2>% Used</th><th rowspan=2>Status</th><th rowspan=2>Aksi</th></tr><tr><th class="n">Submitted Charges</th><th class="n">Total</th></tr>${tr||'<tr><td colspan=9 class="mu">Tidak ada antrian.</td></tr>'}</table></div>${rows.some(r=>ca(U,r,S[r.id][p]))&&(!L[p]||U.ad)?'<button class="p" data-a="all">Approve semua yang dapat disetujui</button>':""}`}
+function vmo(){const es=[...new Set(R.filter(r=>U.ad||mem(r.e).some(m=>m.name==U.name)).map(r=>r.e))];
+return`<div class="note">Aktual = opening balance + jam disetujui. 🟠 75–100% · 🔴 di atas 100%.${U.ad?" Admin melihat seluruh 34 PT.":""}</div>`+es.map(e=>{const m=mem(e),h=m.reduce((a,r)=>a+r.h,0),a=m.reduce((s,r)=>s+O[r.id]+A(r),0),c=pc({h},a),n=m.filter(r=>pc(r,O[r.id]+A(r))>=75).length;
+return`<details class="cd"><summary><b>${D[e].c}</b> ${D[e].n}<span class="mu">Budget ${f(h)} · Aktual ${f(a)}</span>${bar(c)}${fl(c)}${n?` <span class="mu">(${n} baris berflag)</span>`:""}</summary><div class="sc"><table><tr><th>Nama</th><th>Posisi</th><th class="n">Budget</th><th class="n">Opening</th><th class="n">Disetujui</th><th class="n">Aktual</th><th class="n">Sisa</th><th>% Used</th></tr>${m.map(r=>{const a=O[r.id]+A(r),c=pc(r,a);return`<tr><td>${r.name}</td><td>${r.pos}</td><td class="n">${f(r.h)}</td><td class="n">${f(O[r.id])}</td><td class="n">${f(A(r))}</td><td class="n">${f(a)}</td><td class="n">${f(r.h-a)}</td><td>${bar(c)}${fl(c)}</td></tr>`}).join("")}</table></div></details>`}).join("")}
+function vad(){return`<div class="cd"><b>Lock periode</b><div class="sc"><table><tr><th>Periode</th><th>Status</th><th></th></tr>${P.map((x,i)=>`<tr><td>${fd(x[0])} – ${fd(x[1])} ${x[1].getFullYear()}</td><td>${L[i]?"🔒 Terkunci":"Terbuka"}</td><td><button data-a="lk" data-r="${i}">${L[i]?"Buka kunci":"Kunci"}</button></td></tr>`).join("")}</table></div></div>
+<div class="cd"><b>Ekspor</b> <button class="p" data-a="ex">Ekspor ke Excel</button> <span class="mu" id="em">Unduhan berfungsi di versi live (GitHub); di pratinjau ini mungkin diblokir.</span></div>
+<div class="cd"><b>Opening balance</b> <span class="mu">(jam aktual sebelum 26 Okt 2026; default 0)</span><div class="sc"><table><tr><th>PT</th><th>Nama</th><th>Posisi</th><th class="n">Budget</th><th>Opening (jam)</th></tr>${R.map(r=>`<tr><td>${r.c}</td><td>${r.name}</td><td>${r.pos}</td><td class="n">${f(r.h)}</td><td><input class="in" type="number" min="0" step="0.5" data-o="${r.id}" value="${O[r.id]}"></td></tr>`).join("")}</table></div></div>`}
+function ex(){const a=[["PT","Perusahaan","Nama","Posisi","Budget (jam)","Opening (jam)","Disetujui (jam)","Aktual (jam)","Sisa (jam)","Utilisasi (%)","Flag"]],b=[["PT","Nama","Posisi","Periode","Jam","Status","Alasan reject"]];
+R.forEach(r=>{const t=O[r.id]+A(r),c=pc(r,t);a.push([r.c,D[r.e].n,r.name,r.pos,r.h,O[r.id],A(r),t,r.h-t,Math.round(c*10)/10,c>100?"Merah":c>=75?"Oranye":""]);Object.entries(S[r.id]).forEach(([q,x])=>b.push([r.c,r.name,r.pos,fd(P[q][0])+" - "+fd(P[q][1]),x.h,ST[x.st],x.note||""]))});
+try{const w=XLSX.utils.book_new();XLSX.utils.book_append_sheet(w,XLSX.utils.aoa_to_sheet(a),"Ringkasan");XLSX.utils.book_append_sheet(w,XLSX.utils.aoa_to_sheet(b),"Detail Periode");XLSX.writeFile(w,"TimeCharge_TM_Group_2026.xlsx")}catch(e){$("#em").textContent="Ekspor gagal di pratinjau; akan berfungsi di versi live."}}
+document.addEventListener("click",ev=>{const b=ev.target.closest("button");if(!b)return;if(b.dataset.t){tab=b.dataset.t;return draw()}
+const a=b.dataset.a,id=b.dataset.r;
+if(a=="sub"){let n=0,k=0;ent(U).forEach(r=>{const x=S[r.id][p];if(x&&(x.st=="D"||x.st=="R")){x.st=U.rk==3?"A":"S";delete x.note;n++}else if(!x)k++});draw();$("#msg").textContent=n+" baris disubmit"+(k?", "+k+" baris belum diisi":"")}
+if(a=="ok"){if(!ca(U,R[id],S[id][p]))return;S[id][p].st=U.rk==2&&!adl()?"P":"A";draw()}if(a=="no"){rej=+id;draw()}if(a=="rx"){rej=null;draw()}
+if(a=="rc"){const v=$("#rs").value.trim();if(!v)return $("#rm").textContent="Alasan wajib diisi";S[id][p]={...S[id][p],st:"R",note:v};rej=null;draw()}
+if(a=="all"){(adl()?R:apr(U)).forEach(r=>{const x=S[r.id][p];if(x&&ca(U,r,x))x.st=U.rk==2&&!adl()?"P":"A"});draw()}
+if(a=="lk"){L[id]=!L[id];draw()}if(a=="ex")ex()});
+document.addEventListener("change",ev=>{const i=ev.target;if(i.type!="number")return;const v=Math.round(+i.value*2)/2;
+if(i.dataset.o){O[i.dataset.o]=Math.max(0,v||0);return}
+if(i.dataset.r){if(i.value===""||v<0)delete S[i.dataset.r][p];else S[i.dataset.r][p]=adl()?{h:v,st:"A",adm:1}:{h:v,st:"D"};draw()}});
+$("#u").innerHTML=users.map((u,i)=>`<option value="${i}">${u.name} · ${RL[u.rk]}${u.ad?" · Admin":""}</option>`).join("");$("#u").value=users.indexOf(U);
+$("#u").onchange=e=>{U=users[e.target.value];try{localStorage.tc_u=U.name}catch(x){}tab="in";draw()};
+$("#pd").innerHTML=P.map((x,i)=>`<option value="${i}">${fd(x[0])} – ${fd(x[1])} ${x[1].getFullYear()}</option>`).join("");$("#pd").value=p;$("#pd").onchange=e=>{p=+e.target.value;rej=null;draw()};
+draw();}</script></body></html>
